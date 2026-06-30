@@ -800,14 +800,6 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
   <!-- ── DASHBOARD ── -->
   <div class="section active" id="sec-dashboard">
 
-    <!-- RUANG PENGUMUMAN -->
-    <div id="pengumumanWrap" class="pengumuman-wrap" style="display:none"></div>
-    <div class="admin-only" id="pengumumanAdminBar" style="display:none;margin-bottom:12px">
-      <button class="btn btn-primary" onclick="openModal('mPengumuman')" style="font-size:12px">
-        📢 + Tambah Pengumuman
-      </button>
-    </div>
-
     <div class="dashboard-hero">
       <div class="hero-l">
         <h2 id="heroTitle">Selamat Datang ke Pusat Markah CA &amp; SVM</h2>
@@ -975,7 +967,6 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
       <div class="card-body">
         <div class="admin-tools">
           <div class="atool"><div class="atool-icon">📢</div><h4>Urus Pengumuman</h4><p>Buat, edit dan padam pengumuman untuk semua pengguna</p><button class="btn btn-primary" onclick="openModal('mAnnounce')">Urus Pengumuman</button></div>
-          <div class="atool"><div class="atool-icon">📢</div><h4>Urus Pengumuman</h4><p>Tambah, edit atau padam pengumuman dalam Dashboard</p><button class="btn btn-primary" onclick="openModal('mPengumuman')">Urus Pengumuman</button></div>
           <div class="atool"><div class="atool-icon">👥</div><h4>Urus Peranan &amp; Akses</h4><p>Tetapkan kata laluan Tenaga Pengajar dan Pemantau</p><button class="btn btn-primary" onclick="openModal('mRoles')">Urus Peranan</button></div>
           <div class="atool"><div class="atool-icon">🎨</div><h4>Penyesuai Sistem</h4><p>Ubah teks, warna, label, tab dan paparan sistem</p><button class="btn btn-primary" onclick="openModal('mCustom')">Buka Customizer</button></div>
           <div class="atool"><div class="atool-icon">🖼️</div><h4>Logo &amp; Imej</h4><p>Upload logo, background header dan hero section</p><button class="btn btn-primary" onclick="openModal('mImej')">Urus Imej</button></div>
@@ -1046,33 +1037,8 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
 
     <div class="modal-foot">
       <button class="btn btn-green" onclick="pullAllFromSheets()">⬇️ Pull Data dari Sheets</button>
+      <button class="btn btn-outline" onclick="pushAllToSheets()">⬆️ Push Data ke Sheets</button>
       <button class="btn btn-outline" onclick="saveGASOptions()">💾 Simpan Pilihan Sync</button>
-      <button class="btn btn-outline" onclick="closeModal('mGasSetup')">Tutup</button>
-    </div>
-  </div>
-</div>
-
-
-    <!-- SYNC OPTIONS -->
-    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--c-border)">
-      <div style="font-size:12px;font-weight:700;color:var(--c-sub);margin-bottom:10px">⚙️ Pilihan Sync:</div>
-      <div class="toggle-row">
-        <div><div class="toggle-lbl">Auto-sync setiap kali data berubah</div><div class="toggle-sub">Sync markah, tetapan dan imej secara automatik</div></div>
-        <label class="toggle"><input type="checkbox" id="optAutoSync" checked><span class="toggle-slider"></span></label>
-      </div>
-      <div class="toggle-row">
-        <div><div class="toggle-lbl">Auto-refresh setiap 5 minit</div><div class="toggle-sub">Tarik data terbaru dari Sheets — berguna jika ramai admin edit serentak</div></div>
-        <label class="toggle"><input type="checkbox" id="optAutoRefresh" checked><span class="toggle-slider"></span></label>
-      </div>
-      <div class="toggle-row">
-        <div><div class="toggle-lbl">Load dari Sheets semasa buka sistem</div><div class="toggle-sub">Ambil data terkini dari cloud setiap kali sistem dibuka</div></div>
-        <label class="toggle"><input type="checkbox" id="optLoadOnStart" checked><span class="toggle-slider"></span></label>
-      </div>
-    </div>
-
-    <div class="modal-foot">
-      <button class="btn btn-green" onclick="pushAllToSheets()">⬆️ Push Semua Data ke Sheets</button>
-      <button class="btn btn-outline" onclick="pullAllFromSheets()">⬇️ Pull Semua Data dari Sheets</button>
       <button class="btn btn-outline" onclick="closeModal('mGasSetup')">Tutup</button>
     </div>
   </div>
@@ -1727,7 +1693,7 @@ function applyRoleAccess() {
 // Admin: Selepas deploy GAS, tampal URL di bawah.
 // Semua pengguna (Pengajar, Pemantau) akan guna URL ini
 // secara automatik tanpa perlu setup sendiri.
-const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbwc4RIQXaRNI-p2kegG15vsoPcBYkgDq9EWudvqBxwAir8dRkIqOr25sOBJiDo5Zza-PA/exec'; // <-- TAMPAL URL GAS DI SINI
+const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbw0Am5GOrHSsOcgnAtRZXWS4brYm1DWlkhWO_QM0c9ibf3TUoOnFmwzQnkkgcVlS66C/exec; // <-- TAMPAL URL GAS DI SINI
 
 let GAS_URL = '';
 let cloudConnected = false;
