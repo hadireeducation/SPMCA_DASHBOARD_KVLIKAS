@@ -709,7 +709,7 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
         <span id="ls-logoBot">LIKAS</span>
       </div>
       <div>
-        <div class="login-title" id="ls-title">Sistem Pengurusan Markah Core abilities</div>
+        <div class="login-title" id="ls-title">Sistem Pengurusan Markah CA &amp; SVM</div>
         <div class="login-sub" id="ls-sub">Kolej Vokasional Likas · Program Teknologi Elektrik</div>
       </div>
     </div>
@@ -1693,7 +1693,7 @@ function applyRoleAccess() {
 // Admin: Selepas deploy GAS, tampal URL di bawah.
 // Semua pengguna (Pengajar, Pemantau) akan guna URL ini
 // secara automatik tanpa perlu setup sendiri.
-const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbynWRiOE8GIHLvyZF7To-qPnynbPZm-LVh7h-z2gviqAWbK5HffyZ7O6GEigMYfs9lvUA/exec'; // <-- TAMPAL URL GAS DI SINI
+const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbwWXQnoSlHnvLknVlyL69zCaaImOYAm6Hn2tvwNzr7k6dI7sscSO8nnYbZeMxH30YG5xA/exec'; // <-- TAMPAL URL GAS DI SINI
 
 let GAS_URL = '';
 let cloudConnected = false;
@@ -1855,14 +1855,13 @@ async function pullAllFromSheets() {
       S = deepMerge(DEFAULT, result.settings);
       saveSettings(); applyAllSettings();
     }
-    if (Array.isArray(result.markah)) {
-    }
     if (Array.isArray(result.arkib)) { arkibData = result.arkib; localStorage.setItem('ca_arkib', JSON.stringify(arkibData)); }
     if (result.images) {
       Object.entries(result.images).forEach(([k,v])=>{ if(v) localStorage.setItem('ca_img_'+k,v); else localStorage.removeItem('ca_img_'+k); });
       applyImages();
     }
     if (Array.isArray(result.sheetsSrc)) { sheetsSources = result.sheetsSrc; localStorage.setItem('ca_sheets_src', JSON.stringify(sheetsSources)); }
+    if (Array.isArray(result.markah)) { sheetsImportedData = result.markah; localStorage.setItem('ca_sheets_data', JSON.stringify(sheetsImportedData)); }
     loadAnnounceFromSettings();
     renderArkib(); renderAnnounce(); updateDashboard(); renderStatistik(); updateSheetsDash(); updateTimestamp();
     addCloudLog('Pull berjaya: data dari Sheets dimuatkan', 'ok');
@@ -1879,12 +1878,13 @@ async function pushAllToSheets() {
   showSaving(true); addCloudLog('Push semua data ke Sheets...', 'info');
   try {
     await gasCall('saveSettings', { data: S });
-    for (const a of arkibData) await gasCall('addArkib', { data: a });
+    await gasCall('saveArkib', { data: arkibData });
     for (const key of ['logo','hdrBg','heroBg']) {
       const b64 = localStorage.getItem('ca_img_' + key);
       if (b64) await gasCall('saveImage', { key, data: b64 });
     }
     await gasCall('saveSheetsSrc', { data: sheetsSources });
+    await gasCall('saveMarkah', { data: sheetsImportedData });
     addCloudLog('Push berjaya: semua data dihantar', 'ok');
     toast('✅ Semua data berjaya di-push ke Sheets!');
   } catch(e) { addCloudLog('Push gagal: '+e.message,'err'); toast('❌ Push gagal: '+e.message); }
@@ -1899,6 +1899,8 @@ async function cloudDelArkib(id) { if(!isAutoSync())return; showSaving(true); aw
 async function cloudSaveImage(key,b64) { if(!isAutoSync())return; showSaving(true); addCloudLog('Menghantar imej '+key+'...','info'); const r=await gasCall('saveImage',{key,data:b64}); showSaving(false); if(r?.ok) addCloudLog('Imej '+key+' disimpan ke Sheets ✅','ok'); else addCloudLog('Gagal simpan imej '+key,'err'); }
 async function cloudDelImage(key) { if(!isAutoSync())return; await gasCall('delImage',{key}); addCloudLog('Imej '+key+' dipadam dari Sheets','ok'); }
 async function cloudSaveSheetsSrc() { if(!isAutoSync())return; await gasCall('saveSheetsSrc',{data:sheetsSources}); addCloudLog('Sumber Sheets disimpan ke cloud','ok'); }
+async function cloudSaveMarkah() { if(!isAutoSync())return; showSaving(true); await gasCall('saveMarkah',{data:sheetsImportedData}); showSaving(false); addCloudLog('Markah ('+sheetsImportedData.length+' rekod) disimpan ke Sheets','ok'); }
+async function cloudClearMarkah(srcId) { if(!isAutoSync())return; await gasCall('clearMarkah',{srcId}); addCloudLog('Rekod markah sumber '+srcId+' dipadam dari Sheets','ok'); }
 async function manualSync() { if(!cloudConnected){openModal('mGasSetup');return;} await pullAllFromSheets(); }
 
 
@@ -1994,6 +1996,7 @@ function loadImgPreviews() {
 function loadSheetsSources() {
   try { sheetsSources = JSON.parse(localStorage.getItem('ca_sheets_src') || '[]'); } catch(e){ sheetsSources=[]; }
   try { sheetsImportedData = JSON.parse(localStorage.getItem('ca_sheets_data') || '[]'); } catch(e){ sheetsImportedData=[]; }
+  // Jika tiada data tempatan dan cloud bersambung, akan dimuatkan semasa pullAllFromSheets (dipanggil selepas login)
 }
 
 function saveSheetsSources() {
@@ -2030,6 +2033,7 @@ function delSheetsSrc(id) {
   sheetsImportedData = sheetsImportedData.filter(r=>r._srcId!==id);
   saveSheetsSources();
   localStorage.setItem('ca_sheets_data', JSON.stringify(sheetsImportedData));
+  cloudClearMarkah(id);
   renderSheetsSrcList();
   updateSheetsDash();
   toast('🗑️ Sumber dipadam.');
@@ -2106,6 +2110,7 @@ async function syncOneSrc(id) {
     src.lastSync = new Date().toLocaleString('ms-MY');
     saveSheetsSources();
     localStorage.setItem('ca_sheets_data', JSON.stringify(sheetsImportedData));
+    cloudSaveMarkah();
     renderSheetsSrcList();
     updateSheetsDash();
     toast(`✅ "${src.nama}" — ${count} rekod berjaya diimport!`);
@@ -3074,6 +3079,7 @@ function resetAll() {
   const savedSheetsData=localStorage.getItem('ca_sheets_data');
   S = JSON.parse(JSON.stringify(DEFAULT));
   saveSettings();
+  cloudSaveSettings();
   if(savedArkib) localStorage.setItem('ca_arkib',savedArkib);
   if(savedSheets) localStorage.setItem('ca_sheets_src',savedSheets);
   if(savedSheetsData) localStorage.setItem('ca_sheets_data',savedSheetsData);
@@ -3184,11 +3190,17 @@ async function silentRefresh() {
       S = deepMerge(DEFAULT, result.settings);
       saveSettings(); applyAllSettings();
     }
-    if (Array.isArray(result.markah)) {
-    }
     if (Array.isArray(result.arkib)) {
       arkibData = result.arkib;
       localStorage.setItem('ca_arkib', JSON.stringify(arkibData));
+    }
+    if (Array.isArray(result.sheetsSrc)) {
+      sheetsSources = result.sheetsSrc;
+      localStorage.setItem('ca_sheets_src', JSON.stringify(sheetsSources));
+    }
+    if (Array.isArray(result.markah)) {
+      sheetsImportedData = result.markah;
+      localStorage.setItem('ca_sheets_data', JSON.stringify(sheetsImportedData));
     }
     // Refresh imej hanya jika berubah
     if (result.images) {
