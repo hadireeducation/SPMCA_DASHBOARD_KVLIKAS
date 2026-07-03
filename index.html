@@ -821,6 +821,7 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
     </div>
 
     <!-- STAT GRID -->
+    <div class="stat-grid">
       <div class="stat-card" style="--strip:var(--c-accent)">
         <div class="stat-icon">📘</div>
         <div class="stat-val" id="s-modul">4</div>
@@ -1693,7 +1694,7 @@ function applyRoleAccess() {
 // Admin: Selepas deploy GAS, tampal URL di bawah.
 // Semua pengguna (Pengajar, Pemantau) akan guna URL ini
 // secara automatik tanpa perlu setup sendiri.
-const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbwWXQnoSlHnvLknVlyL69zCaaImOYAm6Hn2tvwNzr7k6dI7sscSO8nnYbZeMxH30YG5xA/exec'; // <-- TAMPAL URL GAS DI SINI
+const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzvW611--6OHU2tZIyaRL6M80tk9abJAq6A2-8B1-APcBpnbtc0ZMwDZ46tZOnwBP9TGA/exec'; // <-- TAMPAL URL GAS DI SINI
 
 let GAS_URL = '';
 let cloudConnected = false;
@@ -2022,6 +2023,7 @@ function addSheetsSrc() {
   };
   sheetsSources.push(src);
   saveSheetsSources();
+  cloudSaveSheetsSrc();
   renderSheetsSrcList();
   ['ns-nama','ns-url','ns-semFixed'].forEach(id=>document.getElementById(id).value='');
   toast('✅ Sumber "' + nama + '" ditambah!');
@@ -2032,6 +2034,7 @@ function delSheetsSrc(id) {
   sheetsSources = sheetsSources.filter(s=>s.id!==id);
   sheetsImportedData = sheetsImportedData.filter(r=>r._srcId!==id);
   saveSheetsSources();
+  cloudSaveSheetsSrc();
   localStorage.setItem('ca_sheets_data', JSON.stringify(sheetsImportedData));
   cloudClearMarkah(id);
   renderSheetsSrcList();
@@ -2109,6 +2112,7 @@ async function syncOneSrc(id) {
     src.count = count;
     src.lastSync = new Date().toLocaleString('ms-MY');
     saveSheetsSources();
+    cloudSaveSheetsSrc();
     localStorage.setItem('ca_sheets_data', JSON.stringify(sheetsImportedData));
     cloudSaveMarkah();
     renderSheetsSrcList();
@@ -2117,6 +2121,7 @@ async function syncOneSrc(id) {
   } catch(err) {
     src.status = 'err';
     saveSheetsSources();
+    cloudSaveSheetsSrc();
     renderSheetsSrcList();
     toast(`❌ Gagal fetch "${src.nama}": ${err.message}. Pastikan Sheets telah di-publish sebagai CSV.`);
   }
@@ -2362,6 +2367,7 @@ function changePass() {
   if(baru!==sahkan){ showAlert(al,'err','❌ Kata laluan baru tidak sepadan.'); return; }
   S.adminPass = baru;
   saveSettings();
+  cloudSaveSettings();
   showAlert(al,'ok','✅ Kata laluan berjaya ditukar!');
   setTimeout(()=>{ closeModal('mPass'); al.className='alert'; }, 1500);
 }
@@ -2771,6 +2777,7 @@ function addKelas() {
   if(S.kelas.includes(v)){ toast('⚠️ Kelas sudah wujud.'); return; }
   S.kelas.push(v);
   saveSettings();
+  cloudSaveSettings();
   document.getElementById('iKelasNew').value='';
   toast('✅ Kelas '+v+' ditambah!');
 }
@@ -2779,6 +2786,7 @@ function delKelas(k) {
   if(!confirm(`Padam kelas ${k}?`)) return;
   S.kelas=S.kelas.filter(c=>c!==k);
   saveSettings();
+  cloudSaveSettings();
   toast('🗑️ Kelas '+k+' dipadam.');
 }
 
