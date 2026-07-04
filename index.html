@@ -134,9 +134,11 @@ tbody td{padding:10px 15px;vertical-align:middle;}
 .arkib-tag{background:var(--c-xlight);color:var(--c-accent);padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
 
 /* ── MODAL ── */
-.return-btn{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--c-primary);color:#fff;border:none;border-radius:50px;padding:14px 28px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.25);z-index:10000;transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .3s;opacity:0;pointer-events:none;display:flex;align-items:center;gap:10px;white-space:nowrap;}
-.return-btn.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:all;}
-.return-btn:hover{filter:brightness(1.12);box-shadow:0 8px 28px rgba(0,0,0,.32);}
+.sheets-overlay{display:none;position:fixed;inset:0;z-index:10000;flex-direction:column;background:#1e293b;}
+.sheets-overlay.show{display:flex;}
+.sheets-topbar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--c-primary);flex-shrink:0;}
+.sheets-topbar span{color:#fff;font-size:13px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sheets-iframe{flex:1;border:none;width:100%;background:#fff;}
 .overlay{display:none;position:fixed;inset:0;background:rgba(10,20,50,.65);z-index:200;align-items:center;justify-content:center;padding:20px;}
 .overlay.show{display:flex;}
 .modal{background:#fff;border-radius:16px;padding:30px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:fadeUp .3s ease;max-height:90vh;overflow-y:auto;}
@@ -1048,7 +1050,14 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
   </div>
 </div>
 
-<button class="return-btn" id="returnBtn" onclick="tutupReturnBtn()">⬅️ Kembali ke Sistem</button>
+<div class="sheets-overlay" id="sheetsOverlay">
+  <div class="sheets-topbar">
+    <button class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,.4);font-size:13px;padding:6px 16px;flex-shrink:0" onclick="tutupSheetsOverlay()">⬅️ Kembali ke Sistem</button>
+    <span id="sheetsOverlayTitle">Google Sheets</span>
+    <a id="sheetsOverlayLink" href="#" target="_blank" style="color:rgba(255,255,255,.7);font-size:12px;flex-shrink:0;text-decoration:none" title="Buka dalam tab baharu">↗️ Tab Baru</a>
+  </div>
+  <iframe class="sheets-iframe" id="sheetsFrame" src="" allowfullscreen></iframe>
+</div>
 
 <!-- MODAL LOGIN -->
 <div class="overlay" id="mLogin">
@@ -2221,14 +2230,6 @@ function init() {
   renderStatistik();
   updateTimestamp();
   initLoginScreen();
-  // Semak flag kembali dari Sheets (full reload atau bfcache)
-  if (sessionStorage.getItem('ca_return_from_sheets') === '1') {
-    sessionStorage.removeItem('ca_return_from_sheets');
-    setTimeout(() => {
-      const btn = document.getElementById('returnBtn');
-      if (btn) btn.classList.add('show');
-    }, 400);
-  }
 }
 
 function deepMerge(base, override) {
@@ -2778,27 +2779,17 @@ function saveURLs() {
 function bukaPautan(n) {
   const url = S.urls[n];
   if (!url) { toast(`⚠️ URL Semester ${n} belum ditetapkan. Log masuk Admin untuk tetapkan.`); return; }
-  sessionStorage.setItem('ca_return_from_sheets', '1');
-  toast('💡 Klik ← pada pelayar untuk kembali ke sistem');
-  setTimeout(() => { window.location.href = url; }, 900);
+  const lbl = S.pautanLabels?.[n-1] || `Semester ${n}`;
+  document.getElementById('sheetsOverlayTitle').textContent = lbl + ' — Google Sheets Markah';
+  document.getElementById('sheetsOverlayLink').href = url;
+  document.getElementById('sheetsFrame').src = url;
+  document.getElementById('sheetsOverlay').classList.add('show');
 }
 
-function tutupReturnBtn() {
-  const btn = document.getElementById('returnBtn');
-  if (btn) { btn.classList.remove('show'); }
-  sessionStorage.removeItem('ca_return_from_sheets');
+function tutupSheetsOverlay() {
+  document.getElementById('sheetsOverlay').classList.remove('show');
+  document.getElementById('sheetsFrame').src = '';
 }
-
-// Papar butang kembali apabila pengguna kembali dari Sheets (bfcache / history.back)
-window.addEventListener('pageshow', function(e) {
-  if (sessionStorage.getItem('ca_return_from_sheets') === '1') {
-    sessionStorage.removeItem('ca_return_from_sheets');
-    setTimeout(() => {
-      const btn = document.getElementById('returnBtn');
-      if (btn) btn.classList.add('show');
-    }, 300);
-  }
-});
 
 // ══════════════════════════════════════
 // KELAS
