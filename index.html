@@ -134,6 +134,9 @@ tbody td{padding:10px 15px;vertical-align:middle;}
 .arkib-tag{background:var(--c-xlight);color:var(--c-accent);padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
 
 /* ── MODAL ── */
+.return-btn{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--c-primary);color:#fff;border:none;border-radius:50px;padding:14px 28px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.25);z-index:9999;transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .3s;opacity:0;pointer-events:none;display:flex;align-items:center;gap:10px;white-space:nowrap;}
+.return-btn.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:all;}
+.return-btn:hover{filter:brightness(1.12);box-shadow:0 8px 28px rgba(0,0,0,.32);}
 .overlay{display:none;position:fixed;inset:0;background:rgba(10,20,50,.65);z-index:200;align-items:center;justify-content:center;padding:20px;}
 .overlay.show{display:flex;}
 .modal{background:#fff;border-radius:16px;padding:30px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:fadeUp .3s ease;max-height:90vh;overflow-y:auto;}
@@ -1044,6 +1047,8 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
     </div>
   </div>
 </div>
+
+<button class="return-btn" id="returnBtn" onclick="tutupReturnBtn()">⬅️ Kembali ke Sistem</button>
 
 <!-- MODAL LOGIN -->
 <div class="overlay" id="mLogin">
@@ -2763,10 +2768,29 @@ function saveURLs() {
 }
 
 function bukaPautan(n) {
-  const url=S.urls[n];
-  if(url) window.open(url,'_blank');
-  else toast(`⚠️ URL Semester ${n} belum ditetapkan. Log masuk Admin untuk tetapkan.`);
+  const url = S.urls[n];
+  if (!url) { toast(`⚠️ URL Semester ${n} belum ditetapkan. Log masuk Admin untuk tetapkan.`); return; }
+  sessionStorage.setItem('ca_return_from_sheets', '1');
+  toast('💡 Klik ← pada pelayar untuk kembali ke sistem');
+  setTimeout(() => { window.location.href = url; }, 900);
 }
+
+function tutupReturnBtn() {
+  const btn = document.getElementById('returnBtn');
+  if (btn) { btn.classList.remove('show'); }
+  sessionStorage.removeItem('ca_return_from_sheets');
+}
+
+// Papar butang kembali apabila pengguna kembali dari Sheets (bfcache / history.back)
+window.addEventListener('pageshow', function(e) {
+  if (sessionStorage.getItem('ca_return_from_sheets') === '1') {
+    sessionStorage.removeItem('ca_return_from_sheets');
+    setTimeout(() => {
+      const btn = document.getElementById('returnBtn');
+      if (btn) btn.classList.add('show');
+    }, 300);
+  }
+});
 
 // ══════════════════════════════════════
 // KELAS
@@ -2867,7 +2891,10 @@ function renderAccountList(type) {
         <div style="width:32px;height:32px;border-radius:50%;background:var(--c-light);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${type==='pengajar'?'👨‍🏫':'👁️'}</div>
         <div>
           <div style="font-size:13px;font-weight:600">${acc.nama}</div>
-          <div style="font-size:11px;color:var(--c-muted)">Kata laluan: ••••••••</div>
+          <div style="font-size:11px;color:var(--c-muted);display:flex;align-items:center;gap:6px">
+            <span id="passDisplay_${type}_${i}">Kata laluan: ••••••••</span>
+            <button onclick="togglePassDisplay('${type}',${i},'${acc.pass}')" style="background:none;border:none;cursor:pointer;font-size:12px;padding:0;color:var(--c-muted)" title="Tunjuk/Sembunyi kata laluan">👁️</button>
+          </div>
         </div>
       </div>
       <div style="display:flex;gap:6px">
@@ -2875,6 +2902,13 @@ function renderAccountList(type) {
         <button class="btn btn-red btn-sm" onclick="delAccount('${type}',${i})">🗑️</button>
       </div>
     </div>`).join('');
+}
+
+function togglePassDisplay(type, idx, pass) {
+  const el = document.getElementById(`passDisplay_${type}_${idx}`);
+  if (!el) return;
+  const hidden = el.textContent.includes('••••');
+  el.textContent = hidden ? `Kata laluan: ${pass}` : 'Kata laluan: ••••••••';
 }
 
 function addAccount(type) {
