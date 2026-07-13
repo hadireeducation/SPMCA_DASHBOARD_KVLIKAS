@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-<meta charset="UTF-8"> 
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=5.0, user-scalable=yes">
 <title id="pageTitle">Sistem Pengurusan Markah CA KV Likas</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -714,8 +714,8 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
         <span id="ls-logoBot">LIKAS</span>
       </div>
       <div>
-        <div class="login-title" id="ls-title">Sistem Pengurusan Markah Core Abilities</div>
-        <div class="login-sub" id="ls-sub">Kolej Vokasional Likas</div>
+        <div class="login-title" id="ls-title">Sistem Pengurusan Markah CA &amp; SVM</div>
+        <div class="login-sub" id="ls-sub">Kolej Vokasional Likas · Program Teknologi Elektrik</div>
       </div>
     </div>
 
@@ -766,8 +766,8 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
         <span id="logoBot">LIKAS</span>
       </div>
       <div class="hdr-texts">
-        <h1 id="hdrTitle">Sistem Pengurusan Markah Core Abilities</h1>
-        <p id="hdrSub">Kolej Vokasional Likas</p>
+        <h1 id="hdrTitle">Sistem Pengurusan Markah CA &amp; SVM</h1>
+        <p id="hdrSub">Kolej Vokasional Likas · Program Teknologi Elektrik</p>
       </div>
     </div>
       <div class="hdr-right">
@@ -1052,9 +1052,9 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
 
 <div class="sheets-overlay" id="sheetsOverlay">
   <div class="sheets-topbar">
-    <button class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,.4);font-size:13px;padding:6px 16px;flex-shrink:0" onclick="tutupSheetsOverlay()">⬅️ Kembali ke Sistem</button>
+    <button class="btn btn-outline" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.4);font-size:13px;padding:6px 16px;flex-shrink:0" onclick="tutupSheetsOverlay()">⬅️ Kembali ke Sistem</button>
     <span id="sheetsOverlayTitle">Google Sheets</span>
-    <a id="sheetsOverlayLink" href="#" target="_blank" style="color:rgba(255,255,255,.7);font-size:12px;flex-shrink:0;text-decoration:none" title="Buka dalam tab baharu">↗️ Tab Baru</a>
+    <a id="sheetsOverlayLink" href="#" target="_blank" style="display:none;color:rgba(255,255,255,.7);font-size:12px;flex-shrink:0;text-decoration:none" title="Buka dalam tab baharu">↗️ Tab Baru</a>
   </div>
   <iframe class="sheets-iframe" id="sheetsFrame" src="" allowfullscreen></iframe>
 </div>
@@ -1144,8 +1144,8 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
     <!-- TEKS & LABEL -->
     <div class="cust-panel active" id="cTeks">
       <div class="fgrid fgrid-2">
-        <div class="fgrp"><label>Tajuk Header (Baris 1)</label><input type="text" id="c-hdrTitle" placeholder="Sistem Pengurusan Markah Core Abilities"></div>
-        <div class="fgrp"><label>Sub-Header (Baris 2)</label><input type="text" id="c-hdrSub" placeholder="Kolej Vokasional Likas"></div>
+        <div class="fgrp"><label>Tajuk Header (Baris 1)</label><input type="text" id="c-hdrTitle" placeholder="Sistem Pengurusan Markah CA &amp; SVM"></div>
+        <div class="fgrp"><label>Sub-Header (Baris 2)</label><input type="text" id="c-hdrSub" placeholder="Kolej Vokasional Likas · Program..."></div>
         <div class="fgrp"><label>Logo Teks Atas</label><input type="text" id="c-logoTop" placeholder="KV"></div>
         <div class="fgrp"><label>Logo Teks Bawah</label><input type="text" id="c-logoBot" placeholder="LIKAS"></div>
         <div class="fgrp"><label>Badge Kiri (CA)</label><input type="text" id="c-badge1" placeholder="CORE ABILITIES"></div>
@@ -1162,7 +1162,7 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
         <div class="fgrp"><label>Label Stat: Perhatian</label><input type="text" id="c-sl-rendah" placeholder="Perlu Perhatian"></div>
         <div class="fgrp"><label>Tajuk Arkib</label><input type="text" id="c-arkibTitle" placeholder="Arkib Markah Mengikut Tahun"></div>
         <div class="fgrp"><label>Status Bar Teks</label><input type="text" id="c-statusText" placeholder="Sistem aktif · Data tempatan"></div>
-        <div class="fgrp"><label>Tajuk Halaman (Tab Browser)</label><input type="text" id="c-pageTitle" placeholder="Sistem Pengurusan Markah Core Abilities"></div>
+        <div class="fgrp"><label>Tajuk Halaman (Tab Browser)</label><input type="text" id="c-pageTitle" placeholder="Sistem Pengurusan Markah CA &amp; SVM"></div>
       </div>
     </div>
 
@@ -1208,8 +1208,8 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
       <div class="fgrid fgrid-2">
         <div class="fgrp"><label>Nama Komponen 1 (CA)</label><input type="text" id="c-namaCA" placeholder="CA"></div>
         <div class="fgrp"><label>Markah Penuh CA</label><input type="number" id="c-maxCA" min="1" max="200" placeholder="60"></div>
-        <div class="fgrp"><label>Nama Komponen 2 (CA)</label><input type="text" id="c-namaCA" placeholder="CA"></div>
-        <div class="fgrp"><label>Markah Penuh CA</label><input type="number" id="c-maxCA" min="1" max="200" placeholder="40"></div>
+        <div class="fgrp"><label>Nama Komponen 2 (SVM)</label><input type="text" id="c-namaSVM" placeholder="SVM"></div>
+        <div class="fgrp"><label>Markah Penuh SVM</label><input type="number" id="c-maxSVM" min="1" max="200" placeholder="40"></div>
         <div class="fgrp"><label>Had Lulus (Gred D minimum)</label><input type="number" id="c-hadLulus" min="1" max="100" placeholder="40"></div>
         <div class="fgrp"><label>Had Perlu Perhatian (&lt; nilai ini)</label><input type="number" id="c-hadPerhatian" min="1" max="100" placeholder="40"></div>
         <div class="fgrp"><label>Gred A (≥ markah ini)</label><input type="number" id="g-A" placeholder="80"></div>
@@ -1313,7 +1313,7 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
         <div class="fgrp"><label>Kolum No. Pelajar</label><input type="number" id="ns-cNo" min="1" value="2" placeholder="2"></div>
         <div class="fgrp"><label>Kolum Kelas</label><input type="number" id="ns-cKelas" min="1" value="3" placeholder="3"></div>
         <div class="fgrp"><label>Kolum Markah CA</label><input type="number" id="ns-cCA" min="1" value="4" placeholder="4"></div>
-        <div class="fgrp"><label>Kolum Markah CA</label><input type="number" id="ns-cCA" min="1" value="5" placeholder="5"></div>
+        <div class="fgrp"><label>Kolum Markah SVM</label><input type="number" id="ns-cSVM" min="1" value="5" placeholder="5"></div>
         <div class="fgrp"><label>Kolum Semester</label><input type="number" id="ns-cSem" min="1" value="6" placeholder="6 (atau kosong)"></div>
         <div class="fgrp"><label>Baris Header (langkau)</label><input type="number" id="ns-skipRows" min="0" value="1" placeholder="1"></div>
         <div class="fgrp"><label>Nilai Semester Tetap</label><input type="text" id="ns-semFixed" placeholder="Cth: 1 (jika tiada kolum sem)"></div>
@@ -1485,12 +1485,12 @@ let S = {}; // settings
 
 const DEFAULT = {
   adminPass: 'admin123',
-  hdrTitle: 'Sistem Pengurusan Markah Core Abilities',
-  hdrSub: 'Kolej Vokasional Likas',
+  hdrTitle: 'Sistem Pengurusan Markah CA & SVM',
+  hdrSub: 'Kolej Vokasional Likas · Program Teknologi Elektrik',
   logoTop: 'KV', logoBot: 'LIKAS',
   badge1: 'CORE ABILITIES', badge2: 'SVM',
-  heroTitle: 'Selamat Datang ke Pusat Markah Core Abilities',
-  heroSub: 'Rekod, pantau dan arkib markah pelajar Kolej Vokasional Likas secara berpusat dan sistematik.',
+  heroTitle: 'Selamat Datang ke Pusat Markah CA & SVM',
+  heroSub: 'Rekod, pantau dan arkib markah pelajar Program Teknologi Elektrik\nKolej Vokasional Likas secara berpusat dan sistematik.',
   bigLbl: 'Jumlah Pelajar Berdaftar',
   pautanTitle: 'Akses Cepat — Google Sheets Markah',
   pautanSub: 'Klik untuk buka spreadsheet',
@@ -1502,8 +1502,8 @@ const DEFAULT = {
   statSemTitle: 'Purata Mengikut Semester',
   topTitle: '10 Pelajar Terbaik',
   statusText: 'Sistem aktif · Data tempatan',
-  pageTitle: 'Sistem Pengurusan Markah Core Abilities',
-  namaCA: 'CA', namaCA: 'CA',
+  pageTitle: 'Sistem Pengurusan Markah CA & SVM',
+  namaCA: 'CA', namaSVM: 'SVM',
   maxCA: 60, maxSVM: 40, hadLulus: 40, hadPerhatian: 40,
   gA: 80, gB: 65, gC: 50, gD: 40,
   colorPrimary: '#0f2d5e', colorAccent: '#1d4ed8', colorBright: '#3b82f6',
@@ -3005,7 +3005,7 @@ function populateCustomizer() {
     if(el) el.value=val;
   }
   // markah
-  ['maxCA','maxCA','hadLulus','hadPerhatian'].forEach(k=>{
+  ['maxCA','maxSVM','hadLulus','hadPerhatian'].forEach(k=>{
     const el=document.getElementById('c-'+k);
     if(el) el.value=S[k];
   });
@@ -3061,7 +3061,7 @@ function saveCustom() {
     if(el&&el.value.trim()) S[key]=el.value.trim();
   }
   // markah settings
-  ['maxCA','maxCA','hadLulus','hadPerhatian'].forEach(k=>{
+  ['maxCA','maxSVM','hadLulus','hadPerhatian'].forEach(k=>{
     const el=document.getElementById('c-'+k);
     if(el&&el.value) S[k]=parseFloat(el.value);
   });
