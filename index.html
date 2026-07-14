@@ -1598,11 +1598,34 @@ function cancelRoleSelect() {
   document.getElementById('loginScreenAlert').className = 'alert';
 }
 
-function doRoleLogin() {
+let loginSyncInProgress = false;
+async function doRoleLogin() {
+  if (loginSyncInProgress) return; // elak hantar berganda semasa sedang menyemak cloud
   const pass = document.getElementById('loginPassInput').value;
   const al   = document.getElementById('loginScreenAlert');
   const role = selectedRoleBtn;
   if (!role) return;
+
+  // ── PENAMBAHBAIKAN: tarik tetapan (termasuk kata laluan) TERKINI dari
+  // cloud sebelum disahkan, supaya akses dari peranti lain/baharu sentiasa
+  // guna kata laluan terkini yang ditetapkan Admin — bukan salinan lama
+  // yang tersimpan secara tempatan (localStorage) pada peranti tersebut.
+  if (cloudConnected) {
+    loginSyncInProgress = true;
+    al.className = 'alert ok';
+    al.textContent = '⏳ Menyemak kata laluan terkini...';
+    try {
+      const result = await gasCall('getSettings');
+      if (result?.ok && result.data && Object.keys(result.data).length) {
+        S = deepMerge(DEFAULT, result.data);
+        saveSettings();
+        applyAllSettings();
+      }
+    } catch(e) { /* jika cloud gagal, teruskan guna tetapan tempatan sedia ada */ }
+    al.className = 'alert';
+    al.textContent = '';
+    loginSyncInProgress = false;
+  }
 
   let valid = false;
   let penggunaNama = '';
