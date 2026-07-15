@@ -247,9 +247,15 @@ tbody td{padding:10px 15px;vertical-align:middle;}
 .role-pemantau{background:#fef3c7;color:#92400e;}
 
 /* ── LOGIN SCREEN (landing page) ── */
-.login-screen{position:fixed;inset:0;background:linear-gradient(135deg,var(--c-primary) 0%,#1a3a8f 50%,var(--c-accent) 100%);display:flex;align-items:center;justify-content:center;z-index:500;padding:20px;}
+.login-screen{position:fixed;inset:0;background:linear-gradient(135deg,var(--c-primary) 0%,#1a3a8f 50%,var(--c-accent) 100%);display:flex;align-items:center;justify-content:center;z-index:500;padding:20px;overflow:hidden;}
 .login-screen.hidden{display:none;}
-.login-card{background:#fff;border-radius:20px;padding:40px 36px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,.35);animation:fadeUp .4s ease;}
+.login-bg-media{position:absolute;inset:0;z-index:0;overflow:hidden;background:#0f2d5e;}
+.login-bg-media img,.login-bg-media video,.login-bg-media iframe{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border:0;}
+.login-bg-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(135deg,rgba(15,45,94,.72) 0%,rgba(26,58,143,.72) 50%,rgba(29,78,216,.72) 100%);display:none;}
+.login-announce{position:absolute;bottom:24px;left:20px;right:20px;max-width:420px;margin:0 auto;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:12px;padding:12px 16px;display:flex;align-items:flex-start;gap:10px;color:#fff;font-size:12.5px;line-height:1.55;backdrop-filter:blur(4px);z-index:2;}
+.login-announce .la-icon{font-size:16px;flex-shrink:0;}
+.login-announce .la-text{white-space:pre-line;}
+.login-card{position:relative;z-index:2;background:#fff;border-radius:20px;padding:40px 36px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,.35);animation:fadeUp .4s ease;}
 .login-logo{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
 .login-logo-box{width:52px;height:52px;background:var(--c-primary);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex-shrink:0;}
 .login-logo-box span{font-size:10px;font-weight:900;color:#fff;line-height:1;}
@@ -706,6 +712,8 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
 
 <!-- ══ LOGIN SCREEN ══ -->
 <div class="login-screen" id="loginScreen">
+  <div class="login-bg-media" id="loginBgMedia"></div>
+  <div class="login-bg-overlay" id="loginBgOverlay"></div>
   <div class="login-card">
     <div class="login-logo">
       <div class="login-logo-box">
@@ -753,6 +761,12 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
     <div style="margin-top:20px;text-align:center;font-size:11px;color:var(--c-muted)">
       Sistem ini hanya untuk kegunaan kakitangan KV Likas yang diberi kuasa.
     </div>
+  </div>
+
+  <!-- PENGUMUMAN ADMIN — dipaparkan di ruangan biru bawah kad login, tersembunyi jika kosong -->
+  <div class="login-announce" id="loginAnnounceBox" style="display:none">
+    <span class="la-icon">📢</span>
+    <span class="la-text" id="loginAnnounceText"></span>
   </div>
 </div>
 
@@ -1278,6 +1292,31 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
       </div>
     </div>
 
+    <!-- LOGIN BG IMEJ -->
+    <div class="fgrp">
+      <label>🌌 Background Skrin Log Masuk — Imej (menggantikan latar biru)</label>
+      <div class="img-upload-area" onclick="document.getElementById('upLoginBg').click()">
+        <input type="file" id="upLoginBg" accept="image/*" style="display:none" onchange="handleImgUpload('loginBg',this)">
+        <div id="upLoginBgPreviewWrap">
+          <div style="font-size:28px">🌌</div>
+          <div style="font-size:12px;color:var(--c-muted);margin-top:4px">Klik untuk pilih imej latar belakang skrin log masuk (cadangan: 1920×1080px, JPG)</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-outline btn-sm" onclick="clearImg('loginBg')">✕ Buang Imej Latar Belakang</button>
+      </div>
+    </div>
+
+    <!-- LOGIN BG VIDEO (LUAR) -->
+    <div class="fgrp">
+      <label>🎬 Background Skrin Log Masuk — Video Luar (pilihan)</label>
+      <input type="url" id="c-loginBgVideo" placeholder="https://www.youtube.com/watch?v=... atau https://.../video.mp4">
+      <div style="font-size:11px;color:var(--c-muted);margin-top:4px">Terima pautan YouTube atau pautan fail video terus (.mp4). Jika diisi, video akan diutamakan berbanding imej di atas. Kosongkan &amp; simpan untuk buang video.</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-outline btn-sm" onclick="saveLoginBgVideo()">💾 Simpan URL Video</button>
+      </div>
+    </div>
+
     <div class="alert" id="imejAlert"></div>
     <div class="modal-foot">
       <button class="btn btn-primary" onclick="applyImages();closeModal('mImej')">✅ Guna &amp; Tutup</button>
@@ -1426,6 +1465,14 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
           </select>
         </div>
         <div class="fgrp" style="grid-column:1/-1"><label>Isi Pengumuman</label><textarea id="ann-isi" placeholder="Tulis kandungan pengumuman di sini..." style="min-height:90px"></textarea></div>
+        <div class="fgrp" style="grid-column:1/-1">
+          <label>📍 Papar Pengumuman Di</label>
+          <select id="ann-sasaran">
+            <option value="dashboard">🏠 Selepas Akses Sistem (Dashboard) sahaja</option>
+            <option value="login">🔐 Skrin Log Masuk (Sebelum Akses) sahaja</option>
+            <option value="kedua">🔁 Kedua-dua (Skrin Log Masuk &amp; Dashboard)</option>
+          </select>
+        </div>
         <div class="fgrp"><label>URL Pautan (pilihan)</label><input type="url" id="ann-pautan" placeholder="https://..."></div>
         <div class="fgrp"><label>Label Butang Pautan</label><input type="text" id="ann-pautanLabel" placeholder="Cth: Buka Dokumen, Lihat Lebih Lanjut"></div>
       </div>
@@ -1516,6 +1563,7 @@ const DEFAULT = {
   kelas: ['ET1','ET2','ET3'],
   urls: {1:'',2:'',3:'',4:''},
   pautanHdrMsg: '⚙️ Log masuk sebagai Admin untuk tetapkan URL pautan',
+  loginBgVideo: '',
   // ROLE SETTINGS — senarai akaun per peranan
   roles: {
     pengajar: {
@@ -1551,6 +1599,7 @@ function initLoginScreen() {
   setText('ls-logoBot', S.logoBot);
   setText('ls-title', S.hdrTitle);
   setText('ls-sub', S.hdrSub);
+  renderLoginAnnounce();
   // Sembunyikan butang peranan yang tidak aktif
   const rp = S.roles?.pengajar;
   const rm = S.roles?.pemantau;
@@ -1620,6 +1669,9 @@ async function doRoleLogin() {
         S = deepMerge(DEFAULT, result.data);
         saveSettings();
         applyAllSettings();
+        loadAnnounceFromSettings();
+        renderLoginAnnounce();
+        applyLoginBg();
       }
     } catch(e) { /* jika cloud gagal, teruskan guna tetapan tempatan sedia ada */ }
     al.className = 'alert';
@@ -1917,7 +1969,7 @@ async function pushAllToSheets() {
   try {
     await gasCall('saveSettings', { data: S });
     await gasCall('saveArkib', { data: arkibData });
-    for (const key of ['logo','hdrBg','heroBg']) {
+    for (const key of ['logo','hdrBg','heroBg','loginBg']) {
       const b64 = localStorage.getItem('ca_img_' + key);
       if (b64) await gasCall('saveImage', { key, data: b64 });
     }
@@ -1970,14 +2022,14 @@ function clearImg(type) {
 }
 
 function updateImgPreview(type, b64) {
-  const wrapId = { logo:'upLogoPreviewWrap', hdrBg:'upHdrBgPreviewWrap', heroBg:'upHeroBgPreviewWrap' }[type];
+  const wrapId = { logo:'upLogoPreviewWrap', hdrBg:'upHdrBgPreviewWrap', heroBg:'upHeroBgPreviewWrap', loginBg:'upLoginBgPreviewWrap' }[type];
   const wrap = document.getElementById(wrapId);
   if (!wrap) return;
   if (b64) {
     wrap.innerHTML = `<img src="${b64}" class="img-preview" style="max-height:${type==='logo'?'60px':'80px'}"><div style="font-size:11px;color:var(--c-green);margin-top:4px">✅ Imej dipilih — klik untuk tukar</div>`;
   } else {
-    const icons = {logo:'🏫',hdrBg:'🎨',heroBg:'🖼️'};
-    const hints = {logo:'Klik untuk pilih imej logo (PNG/JPG, saiz cadangan 100×100px)',hdrBg:'Klik untuk pilih imej background header (cadangan: 1920×120px, JPG)',heroBg:'Klik untuk pilih imej hero banner (cadangan: 1200×300px, JPG)'};
+    const icons = {logo:'🏫',hdrBg:'🎨',heroBg:'🖼️',loginBg:'🌌'};
+    const hints = {logo:'Klik untuk pilih imej logo (PNG/JPG, saiz cadangan 100×100px)',hdrBg:'Klik untuk pilih imej background header (cadangan: 1920×120px, JPG)',heroBg:'Klik untuk pilih imej hero banner (cadangan: 1200×300px, JPG)',loginBg:'Klik untuk pilih imej latar belakang skrin log masuk (cadangan: 1920×1080px, JPG)'};
     wrap.innerHTML = `<div style="font-size:28px">${icons[type]}</div><div style="font-size:12px;color:var(--c-muted);margin-top:4px">${hints[type]}</div>`;
   }
 }
@@ -2019,13 +2071,50 @@ function applyImages() {
       hero.classList.remove('has-bg');
     }
   }
+  applyLoginBg();
+}
+
+// Background skrin log masuk: video luar (YouTube/pautan terus) diutamakan,
+// jika tiada guna imej upload, jika tiada juga kekalkan gradient biru asal.
+function applyLoginBg() {
+  const media = document.getElementById('loginBgMedia');
+  const overlay = document.getElementById('loginBgOverlay');
+  if (!media || !overlay) return;
+  const videoUrl = (S.loginBgVideo || '').trim();
+  const imgB64 = localStorage.getItem('ca_img_loginBg');
+  if (videoUrl) {
+    const ytId = getYouTubeId(videoUrl);
+    if (ytId) {
+      media.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&showinfo=0&modestbranding=1&rel=0&iv_load_policy=3" allow="autoplay; encrypted-media" title="Background video"></iframe>`;
+    } else {
+      media.innerHTML = `<video autoplay muted loop playsinline><source src="${escHtml(videoUrl)}"></video>`;
+    }
+    overlay.style.display = 'block';
+  } else if (imgB64) {
+    media.innerHTML = `<img src="${imgB64}" alt="Background Skrin Log Masuk">`;
+    overlay.style.display = 'block';
+  } else {
+    media.innerHTML = '';
+    overlay.style.display = 'none';
+  }
+}
+
+function saveLoginBgVideo() {
+  const url = document.getElementById('c-loginBgVideo').value.trim();
+  S.loginBgVideo = url;
+  saveSettings();
+  cloudSaveSettings();
+  applyLoginBg();
+  toast(url ? '✅ Video latar belakang skrin log masuk disimpan!' : '🗑️ Video latar belakang dibuang, kembali guna imej/gradient asal.');
 }
 
 function loadImgPreviews() {
-  ['logo','hdrBg','heroBg'].forEach(type => {
+  ['logo','hdrBg','heroBg','loginBg'].forEach(type => {
     const b64 = localStorage.getItem('ca_img_' + type);
     updateImgPreview(type, b64);
   });
+  const vEl = document.getElementById('c-loginBgVideo');
+  if (vEl) vEl.value = S.loginBgVideo || '';
 }
 
 // ══════════════════════════════════════
@@ -2444,6 +2533,7 @@ function renderAnnounce() {
   const aktif = announceData.filter(a => {
     if (!a.aktif) return false;
     if (a.tamat && new Date(a.tamat) < now) return false;
+    if (a.sasaran === 'login') return false; // khusus skrin log masuk sahaja, jangan papar di dashboard
     return true;
   });
   // Susun: pin dahulu, kemudian mengikut tarikh terbaru
@@ -2489,6 +2579,38 @@ function renderAnnounce() {
       </div>
     </div>`;
   }).join('');
+  renderLoginAnnounce();
+}
+
+// Render pengumuman aktif di ruangan biru skrin log masuk (sebelum akses sistem)
+function renderLoginAnnounce() {
+  const box = document.getElementById('loginAnnounceBox');
+  const txtEl = document.getElementById('loginAnnounceText');
+  if (!box || !txtEl) return;
+  const now = new Date();
+  const aktif = (announceData || []).filter(a => {
+    if (!a.aktif) return false;
+    if (a.tamat && new Date(a.tamat) < now) return false;
+    if (a.sasaran !== 'login' && a.sasaran !== 'kedua') return false; // hanya papar jika khusus ditetapkan untuk skrin log masuk
+    return true;
+  }).sort((a,b) => {
+    if (a.jenis==='pin' && b.jenis!=='pin') return -1;
+    if (b.jenis==='pin' && a.jenis!=='pin') return 1;
+    return new Date(b.tarikh) - new Date(a.tarikh);
+  });
+  if (!aktif.length) { box.style.display = 'none'; return; }
+  const top = aktif[0];
+  const lebih = aktif.length - 1;
+  let html = `<strong>${escHtml(top.tajuk)}</strong>`;
+  if (top.isi) {
+    const preview = top.isi.replace(/\n/g,' ').slice(0,140);
+    html += `<br>${escHtml(preview)}${top.isi.length>140?'…':''}`;
+  }
+  if (lebih > 0) {
+    html += `<br><span style="opacity:.75">+${lebih} pengumuman lain — log masuk untuk lihat</span>`;
+  }
+  txtEl.innerHTML = html;
+  box.style.display = 'flex';
 }
 
 // Render senarai dalam modal admin
@@ -2501,12 +2623,13 @@ function renderAnnounceAdmin() {
   }
   const sorted = [...announceData].sort((a,b) => new Date(b.tarikh)-new Date(a.tarikh));
   const badgeTxt = {pin:'📌',baru:'🔵',info:'🟢',amaran:'🔴'};
+  const sasaranTxt = {dashboard:'🏠 Dashboard', login:'🔐 Skrin Log Masuk', kedua:'🔁 Kedua-dua'};
   el.innerHTML = `<div style="font-size:12px;font-weight:700;color:var(--c-sub);margin-bottom:8px">📋 Semua Pengumuman (${announceData.length})</div>` +
   sorted.map(a=>`
     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:${a.aktif?'#fff':'#f8fafc'};border:1px solid var(--c-border);border-radius:8px;margin-bottom:6px;gap:10px;flex-wrap:wrap;opacity:${a.aktif?1:0.6}">
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600">${badgeTxt[a.jenis]||'🔵'} ${escHtml(a.tajuk)}</div>
-        <div style="font-size:11px;color:var(--c-muted);margin-top:2px">${formatDate(a.tarikh)} ${a.aktif?'· <span style="color:#059669">Aktif</span>':'· <span style="color:#ef4444">Tidak Aktif</span>'} ${a.tamat?'· Tamat: '+a.tamat:''}</div>
+        <div style="font-size:11px;color:var(--c-muted);margin-top:2px">${formatDate(a.tarikh)} ${a.aktif?'· <span style="color:#059669">Aktif</span>':'· <span style="color:#ef4444">Tidak Aktif</span>'} ${a.tamat?'· Tamat: '+a.tamat:''} · ${sasaranTxt[a.sasaran]||sasaranTxt.dashboard}</div>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0">
         <button class="btn btn-outline btn-sm" onclick="editAnnounce('${a.id}')">✏️ Edit</button>
@@ -2521,6 +2644,7 @@ function saveAnnounce() {
   const tajuk = document.getElementById('ann-tajuk').value.trim();
   const isi   = document.getElementById('ann-isi').value.trim();
   const jenis = document.getElementById('ann-jenis').value;
+  const sasaran = document.getElementById('ann-sasaran').value;
   const pautan= document.getElementById('ann-pautan').value.trim();
   const pautanLabel = document.getElementById('ann-pautanLabel').value.trim();
   const video = document.getElementById('ann-video').value.trim();
@@ -2530,7 +2654,7 @@ function saveAnnounce() {
   if (!tajuk) { showAlert(al,'err','❌ Sila isi tajuk pengumuman.'); return; }
   const rec = {
     id: editId || String(Date.now()),
-    tajuk, isi, jenis, pautan, pautanLabel, video, tamat, aktif,
+    tajuk, isi, jenis, sasaran, pautan, pautanLabel, video, tamat, aktif,
     img: annImgB64,
     tarikh: editId ? (announceData.find(a=>a.id===editId)?.tarikh || new Date().toISOString()) : new Date().toISOString(),
     dikemaskini: editId ? new Date().toISOString() : null,
@@ -2559,6 +2683,7 @@ function editAnnounce(id) {
   document.getElementById('ann-tajuk').value     = a.tajuk||'';
   document.getElementById('ann-isi').value       = a.isi||'';
   document.getElementById('ann-jenis').value     = a.jenis||'baru';
+  document.getElementById('ann-sasaran').value   = a.sasaran||'dashboard';
   document.getElementById('ann-pautan').value    = a.pautan||'';
   document.getElementById('ann-pautanLabel').value = a.pautanLabel||'';
   document.getElementById('ann-video').value     = a.video||'';
@@ -2601,6 +2726,7 @@ function resetAnnForm() {
   document.getElementById('ann-tajuk').value = '';
   document.getElementById('ann-isi').value = '';
   document.getElementById('ann-jenis').value = 'baru';
+  document.getElementById('ann-sasaran').value = 'dashboard';
   document.getElementById('ann-pautan').value = '';
   document.getElementById('ann-pautanLabel').value = '';
   document.getElementById('ann-video').value = '';
