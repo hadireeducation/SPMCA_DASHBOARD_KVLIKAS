@@ -85,6 +85,8 @@ main{max-width:1200px;margin:0 auto;padding:26px 22px 64px;}
 /* ── PAUTAN GRID ── */
 .pautan-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
 .pautan-btn{background:var(--c-white);border:1.5px solid var(--c-border);border-radius:var(--radius);padding:16px 12px;text-align:center;cursor:pointer;text-decoration:none;color:var(--c-text);transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:7px;}
+.pautan-btn.pautan-locked{background:#f8fafc;border-style:dashed;opacity:.7;cursor:not-allowed;}
+.pautan-btn.pautan-locked:hover{transform:none;box-shadow:none;}
 .pautan-btn:hover{border-color:var(--c-bright);background:var(--c-xlight);transform:translateY(-2px);box-shadow:0 6px 18px rgba(59,130,246,.15);}
 .p-icon{width:38px;height:38px;border-radius:9px;background:var(--c-light);display:flex;align-items:center;justify-content:center;font-size:18px;}
 .p-sem{font-size:13px;font-weight:700;color:var(--c-accent);}
@@ -1102,11 +1104,28 @@ tbody td { padding: clamp(7px,1vw,10px) clamp(8px,1.2vw,15px); }
   <div class="modal wide">
     <h3>🔗 Tetapan URL Google Sheets</h3>
     <div class="sub">Masukkan pautan Google Sheets untuk setiap semester</div>
+    <div class="sub" style="margin-top:-8px">🔒 Tandakan "Kunci" untuk sekat akses pengguna buat sementara waktu (URL kekal tersimpan, boleh buka kunci bila-bila masa)</div>
     <div class="fgrid">
-      <div class="fgrp"><label>URL Semester 1</label><input type="url" id="url1" placeholder="https://docs.google.com/spreadsheets/..."></div>
-      <div class="fgrp"><label>URL Semester 2</label><input type="url" id="url2" placeholder="https://docs.google.com/spreadsheets/..."></div>
-      <div class="fgrp"><label>URL Semester 3</label><input type="url" id="url3" placeholder="https://docs.google.com/spreadsheets/..."></div>
-      <div class="fgrp"><label>URL Semester 4</label><input type="url" id="url4" placeholder="https://docs.google.com/spreadsheets/..."></div>
+      <div class="fgrp">
+        <label>URL Semester 1</label>
+        <input type="url" id="url1" placeholder="https://docs.google.com/spreadsheets/...">
+        <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-weight:400;font-size:12px;cursor:pointer"><input type="checkbox" id="lock1" style="width:auto"> 🔒 Kunci akses Semester 1</label>
+      </div>
+      <div class="fgrp">
+        <label>URL Semester 2</label>
+        <input type="url" id="url2" placeholder="https://docs.google.com/spreadsheets/...">
+        <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-weight:400;font-size:12px;cursor:pointer"><input type="checkbox" id="lock2" style="width:auto"> 🔒 Kunci akses Semester 2</label>
+      </div>
+      <div class="fgrp">
+        <label>URL Semester 3</label>
+        <input type="url" id="url3" placeholder="https://docs.google.com/spreadsheets/...">
+        <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-weight:400;font-size:12px;cursor:pointer"><input type="checkbox" id="lock3" style="width:auto"> 🔒 Kunci akses Semester 3</label>
+      </div>
+      <div class="fgrp">
+        <label>URL Semester 4</label>
+        <input type="url" id="url4" placeholder="https://docs.google.com/spreadsheets/...">
+        <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-weight:400;font-size:12px;cursor:pointer"><input type="checkbox" id="lock4" style="width:auto"> 🔒 Kunci akses Semester 4</label>
+      </div>
     </div>
     <div class="modal-foot"><button class="btn btn-primary" onclick="saveURLs()">💾 Simpan Semua</button><button class="btn btn-outline" onclick="closeModal('mURL')">Tutup</button></div>
   </div>
@@ -1562,6 +1581,7 @@ const DEFAULT = {
   tabLabels: {dashboard:'📊 Dashboard',statistik:'📈 Statistik',arkib:'🗂️ Arkib'},
   kelas: ['ET1','ET2','ET3'],
   urls: {1:'',2:'',3:'',4:''},
+  urlLocked: {1:false,2:false,3:false,4:false},
   pautanHdrMsg: '⚙️ Log masuk sebagai Admin untuk tetapkan URL pautan',
   loginBgVideo: '',
   // ROLE SETTINGS — senarai akaun per peranan
@@ -1731,6 +1751,7 @@ function doLogOut() {
   cancelRoleSelect();
   initLoginScreen();
   applyLoginBg();
+  buildPautanGrid();
   // Reset nav ke tab pertama
   switchTab('dashboard', document.querySelector('.nav-btn'));
 }
@@ -1739,6 +1760,9 @@ function applyRoleAccess() {
   const isAdminRole   = currentRole === 'admin';
   const isPengajar    = currentRole === 'pengajar';
   const isPemantau    = currentRole === 'pemantau';
+
+  // Segar semula grid Akses Cepat mengikut peranan (Admin sentiasa nampak tanpa sekatan kunci)
+  buildPautanGrid();
 
   // Admin-only elements
   document.querySelectorAll('.admin-only').forEach(e => {
@@ -2475,9 +2499,11 @@ function buildPautanGrid() {
   const icons = ['📗','📘','📙','📕'];
   grid.innerHTML = S.sems.map((sem, i) => {
     const lbl = S.pautanLabels[i] || sem;
-    return `<a class="pautan-btn" href="#" onclick="bukaPautan(${i+1});return false">
-      <div class="p-icon">${icons[i]}</div>
-      <div class="p-sem">${lbl}</div>
+    const n = i + 1;
+    const isLocked = !!(S.urlLocked && S.urlLocked[n]) && currentRole !== 'admin';
+    return `<a class="pautan-btn${isLocked?' pautan-locked':''}" href="#" onclick="bukaPautan(${n});return false">
+      <div class="p-icon">${isLocked?'🔒':icons[i]}</div>
+      <div class="p-sem">${lbl}${isLocked?' <span style="font-size:10px;font-weight:400;opacity:.75">(Dikunci)</span>':''}</div>
       <div class="p-lbl">Markah ${S.namaCA} &amp; ${S.namaSVM}</div>
     </a>`;
   }).join('');
@@ -2946,7 +2972,10 @@ function renderArkib() {
 // URL SHEETS
 // ══════════════════════════════════════
 function saveURLs() {
-  for(let i=1;i<=4;i++) S.urls[i]=document.getElementById('url'+i).value;
+  for(let i=1;i<=4;i++) {
+    S.urls[i] = document.getElementById('url'+i).value;
+    S.urlLocked[i] = document.getElementById('lock'+i).checked;
+  }
   saveSettings();
   cloudSaveSettings();
   buildPautanGrid();
@@ -2955,10 +2984,15 @@ function saveURLs() {
 }
 
 function bukaPautan(n) {
+  if (S.urlLocked?.[n] && currentRole !== 'admin') {
+    const lbl = S.pautanLabels?.[n-1] || `Semester ${n}`;
+    toast(`🔒 Akses ${lbl} masih dikunci oleh Admin. Sila cuba lagi kemudian.`);
+    return;
+  }
   const url = S.urls[n];
   if (!url) { toast(`⚠️ URL Semester ${n} belum ditetapkan. Log masuk Admin untuk tetapkan.`); return; }
   const lbl = S.pautanLabels?.[n-1] || `Semester ${n}`;
-  document.getElementById('sheetsOverlayTitle').textContent = lbl + ' — Google Sheets Markah';
+  document.getElementById('sheetsOverlayTitle').textContent = lbl + ' — Google Sheets Markah' + (S.urlLocked?.[n] ? ' (🔒 Terkunci — Pratonton Admin)' : '');
   document.getElementById('sheetsOverlayLink').href = url;
   document.getElementById('sheetsFrame').src = url;
   document.getElementById('sheetsOverlay').classList.add('show');
@@ -3014,7 +3048,7 @@ function custTab(id, btn) {
 function openModal(id) {
   document.getElementById(id).classList.add('show');
   if(id==='mCustom')   populateCustomizer();
-  if(id==='mURL')      for(let i=1;i<=4;i++) document.getElementById('url'+i).value=S.urls[i]||'';
+  if(id==='mURL') for(let i=1;i<=4;i++) { document.getElementById('url'+i).value=S.urls[i]||''; document.getElementById('lock'+i).checked = !!S.urlLocked[i]; }
   if(id==='mKelas')    renderKelasList();
   if(id==='mImej')     loadImgPreviews();
   if(id==='mSheets')   renderSheetsSrcList();
