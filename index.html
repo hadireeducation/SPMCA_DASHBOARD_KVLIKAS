@@ -1994,9 +1994,16 @@ async function pushAllToSheets() {
   try {
     await gasCall('saveSettings', { data: S });
     await gasCall('saveArkib', { data: arkibData });
-    for (const key of ['logo','hdrBg','heroBg','loginBg']) {
-      const b64 = localStorage.getItem('ca_img_' + key);
-      if (b64) await gasCall('saveImage', { key, data: b64 });
+    // Push SEMUA imej secara dinamik (logo, header, hero, background login,
+    // gambar pengumuman, dll.) — elak perlu kemas kini senarai secara manual
+    // setiap kali jenis imej baharu ditambah dalam sistem.
+    for (let i = 0; i < localStorage.length; i++) {
+      const lsKey = localStorage.key(i);
+      if (lsKey && lsKey.startsWith('ca_img_')) {
+        const key = lsKey.slice('ca_img_'.length);
+        const b64 = localStorage.getItem(lsKey);
+        if (b64) await gasCall('saveImage', { key, data: b64 });
+      }
     }
     await gasCall('saveSheetsSrc', { data: sheetsSources });
     await gasCall('saveMarkah', { data: sheetsImportedData });
@@ -2576,7 +2583,12 @@ function loadAnnounce() {
 }
 
 function saveAnnounceLocal() {
-  localStorage.setItem('ca_announce', JSON.stringify(announceData));
+  try {
+    localStorage.setItem('ca_announce', JSON.stringify(announceData));
+    return true;
+  } catch (e) {
+    return false; // storan tempatan penuh (quota exceeded) — biasanya disebabkan gambar terlalu besar/banyak
+  }
 }
 
 // Render pengumuman dalam dashboard (semua pengguna)
@@ -2615,9 +2627,10 @@ function renderAnnounce() {
     const badge = badgeMap[a.jenis] || badgeMap.baru;
     const ytId = a.video ? getYouTubeId(a.video) : null;
     const isAdmin = currentRole === 'admin';
+    const imgSrc = a.img ? localStorage.getItem('ca_img_' + a.img) : null;
     return `
     <div class="announce-card ${a.jenis==='pin'?'pinned':''}">
-      ${a.img ? `<img src="${a.img}" class="announce-img" alt="Gambar pengumuman">` : ''}
+      ${imgSrc ? `<img src="${imgSrc}" class="announce-img" alt="Gambar pengumuman">` : ''}
       ${ytId ? `<iframe class="announce-video" src="https://www.youtube.com/embed/${ytId}" allowfullscreen loading="lazy"></iframe>` : ''}
       <div class="announce-hdr">
         <span class="announce-badge ${badge.cls}">${badge.txt}</span>
@@ -2710,17 +2723,36 @@ function saveAnnounce() {
   const rec = {
     id: editId || String(Date.now()),
     tajuk, isi, jenis, sasaran, pautan, pautanLabel, video, tamat, aktif,
-    img: annImgB64,
+    img: '', // diisi di bawah selepas gambar diasingkan & disimpan berasingan
     tarikh: editId ? (announceData.find(a=>a.id===editId)?.tarikh || new Date().toISOString()) : new Date().toISOString(),
     dikemaskini: editId ? new Date().toISOString() : null,
   };
+  // Asingkan gambar daripada teks pengumuman — simpan melalui sistem Images
+  // sedia ada (baris berasingan di Sheets), elak had ~50,000 aksara/sel yang
+  // berlaku jika gambar base64 dicampur terus dalam teks pengumuman.
+  const imgKey = 'ann_' + rec.id;
+  if (annImgB64) {
+    localStorage.setItem('ca_img_' + imgKey, annImgB64);
+    cloudSaveImage(imgKey, annImgB64);
+    rec.img = imgKey;
+  } else {
+    localStorage.removeItem('ca_img_' + imgKey);
+    cloudDelImage(imgKey);
+    rec.img = '';
+  }
   if (editId) {
     const idx = announceData.findIndex(a=>a.id===editId);
     if (idx >= 0) announceData[idx] = rec;
   } else {
     announceData.unshift(rec);
   }
-  saveAnnounceLocal();
+  const okLocal = saveAnnounceLocal();
+  if (!okLocal) {
+    // Rollback — buang rekod yang baru ditambah/diubah kerana gagal simpan
+    if (editId) { loadAnnounce(); } else { announceData.shift(); }
+    showAlert(al,'err','❌ Gagal simpan — storan tempatan penuh. Cuba guna gambar bersaiz lebih kecil, atau padam pengumuman/gambar lama dahulu.');
+    return;
+  }
   cloudSaveAnnounce();
   showAlert(al,'ok','✅ Pengumuman berjaya disimpan!');
   setTimeout(() => {
@@ -2744,7 +2776,7 @@ function editAnnounce(id) {
   document.getElementById('ann-video').value     = a.video||'';
   document.getElementById('ann-tamat').value     = a.tamat||'';
   document.getElementById('ann-aktif').checked   = a.aktif !== false;
-  annImgB64 = a.img||'';
+  annImgB64 = a.img ? (localStorage.getItem('ca_img_' + a.img) || '') : '';
   const prev = document.getElementById('ann-imgPreview');
   if (prev) prev.innerHTML = annImgB64
     ? `<img src="${annImgB64}" style="max-height:60px;border-radius:6px"><div style="font-size:11px;color:var(--c-green);margin-top:4px">✅ Gambar dipilih</div>`
@@ -2757,7 +2789,12 @@ function editAnnounce(id) {
 
 function delAnnounce(id) {
   if (!confirm('Padam pengumuman ini?')) return;
+  const rec = announceData.find(a=>a.id===id);
   announceData = announceData.filter(a=>a.id!==id);
+  if (rec?.img) {
+    localStorage.removeItem('ca_img_' + rec.img);
+    cloudDelImage(rec.img);
+  }
   saveAnnounceLocal();
   cloudSaveAnnounce();
   renderAnnounceAdmin();
@@ -2833,9 +2870,14 @@ async function cloudSaveAnnounce() {
   if (!isAutoSync()) return;
   S._announce = announceData;
   showSaving(true);
-  await gasCall('saveSettings', { data: S });
+  const r = await gasCall('saveSettings', { data: S });
   showSaving(false);
-  addCloudLog('Pengumuman disimpan ke Sheets', 'ok');
+  if (r?.ok) {
+    addCloudLog('Pengumuman disimpan ke Sheets', 'ok');
+  } else {
+    addCloudLog('Gagal segerak pengumuman ke Sheets' + (r?.error ? ': ' + r.error : ' (mungkin saiz gambar terlalu besar)'), 'err');
+    toast('⚠️ Pengumuman disimpan pada peranti ini, tapi GAGAL disegerak ke Sheets. Peranti lain mungkin tak nampak perubahan ini.');
+  }
 }
 
 function loadAnnounceFromSettings() {
